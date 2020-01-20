@@ -65,6 +65,8 @@ names(d2)=c("Capp","Capm","Camp","Camm","Copp","Copm","Comp","Comm")
 ###  some settings
 delta=0.5             # add 0.5 to all TN, FP, TP, FN?
 iternr = 50000        # maximum number of iterations
+xas=seq(0.01,0.99,0.01)
+P=length(xas)
 
 
 ### translate d2 into d1, combine into d
@@ -108,7 +110,7 @@ jagsdatalist=list(
   N2=N2,
   Capp=d2$Capp,CapA=d2$Capp+d2$Capm,CapB=d2$Capp+d2$Camp,Ncases   =d2$Capp+d2$Capm+d2$Camp+d2$Camm,
   Comm=d2$Comm,ComA=d2$Comm+d2$Comp,ComB=d2$Comm+d2$Copm,Ncontrols=d2$Comm+d2$Comp+d2$Copm+d2$Copp,
-  zero6=zero6,prec6=prec6,InvTau=InvTau)
+  zero6=zero6,prec6=prec6,InvTau=InvTau,x=xas,P=P)
 
 ### model in JAGS code
 modelstring = "
@@ -155,9 +157,50 @@ modelstring = "
       interceptB <-  meanalpha[1] + slopeB*meanalpha[3]
       interceptA <- (meanalpha[1]+meanalpha[2]) + slopeA*(meanalpha[3]+meanalpha[4])
 
-#      for (i in 1:N) {
-#          sen
-#      }      
+      # Rutter and Gatsonis parameters: Harbord et al. Biostatistics, 2007, 8, 2, 239-251.
+      beta_A     <- 0.5*log((Sigma[3,3]+Sigma[4,4]+2*Sigma[3,4])/(Sigma[1,1]+Sigma[2,2]+2*Sigma[1,2]))
+      LAMBDA_A   <- sqrt(sqrt(Sigma[3,3]+Sigma[4,4]+2*Sigma[3,4])/sqrt(Sigma[1,1]+Sigma[2,2]+2*Sigma[1,2])) * (meanalpha[1]+meanalpha[2]) +
+                    sqrt(sqrt(Sigma[1,1]+Sigma[2,2]+2*Sigma[1,2])/sqrt(Sigma[3,3]+Sigma[4,4]+2*Sigma[3,4])) * (meanalpha[3]+meanalpha[4])
+      THETA_A    <- 0.5*(sqrt(sqrt(Sigma[3,3]+Sigma[4,4]+2*Sigma[3,4])/sqrt(Sigma[1,1]+Sigma[2,2]+2*Sigma[1,2])) * (meanalpha[1]+meanalpha[2]) -
+                         sqrt(sqrt(Sigma[1,1]+Sigma[2,2]+2*Sigma[1,2])/sqrt(Sigma[3,3]+Sigma[4,4]+2*Sigma[3,4])) * (meanalpha[3]+meanalpha[4]))
+      skwtheta_A <- 0.5*(sqrt((Sigma[3,3]+Sigma[4,4]+2*Sigma[3,4])*(Sigma[1,1]+Sigma[2,2]+2*Sigma[1,2]))-(Sigma[1,3]+Sigma[1,4]+Sigma[2,3]+Sigma[2,4]))
+      skwalfa_A  <- 2*(sqrt((Sigma[3,3]+Sigma[4,4]+2*Sigma[3,4])*(Sigma[1,1]+Sigma[2,2]+2*Sigma[1,2]))+(Sigma[1,3]+Sigma[1,4]+Sigma[2,3]+Sigma[2,4]))
+
+      beta_B     <- 0.5*log(Sigma[3,3]/Sigma[1,1])
+      LAMBDA_B   <- sqrt(sqrt(Sigma[3,3])/sqrt(Sigma[1,1]))*meanalpha[1] + sqrt(sqrt(Sigma[1,1])/sqrt(Sigma[3,3]))*meanalpha[3]
+      THETA_B    <- 0.5*(sqrt(sqrt(Sigma[3,3])/sqrt(Sigma[1,1]))*meanalpha[1] - sqrt(sqrt(Sigma[1,1])/sqrt(Sigma[3,3]))*meanalpha[3])
+      skwtheta_B <- 0.5*(sqrt(Sigma[1,1]*Sigma[3,3])-Sigma[1,3])
+      skwalfa_B  <- 2.0*(sqrt(Sigma[1,1]*Sigma[3,3])+Sigma[1,3])
+
+      # AUCs
+      y1[1]   <- 1/(1+exp(-(interceptA + slopeA * log(x[1]/(1-x[1])))))
+      y2[1]   <- 1/(1+exp(-(interceptB + slopeB * log(x[1]/(1-x[1])))))
+      y3A[1] <- 1/(1+exp(-(LAMBDA_A*exp(beta_A/2) + exp(beta_A)*log(x[1]/(1-x[1])))))
+      y3B[1] <- 1/(1+exp(-(LAMBDA_B*exp(beta_B/2) + exp(beta_B)*log(x[1]/(1-x[1])))))
+      opp1[1] <- (x[1]-0)*(y1[1]-0)/2
+      opp2[1] <- (x[1]-0)*(y2[1]-0)/2
+      opp3A[1] <- (x[1]-0)*(y3A[1]-0)/2
+      opp3B[1] <- (x[1]-0)*(y3B[1]-0)/2
+      for (j in 2:P) {
+         y1[j]   <- 1/(1+exp(-(interceptA + slopeA * log(x[j]/(1-x[j])))))
+         opp1[j] <- (x[j]-x[(j-1)])*y1[(j-1)]+(x[j]-x[(j-1)])*(y1[j]-y1[(j-1)])/2
+         y2[j]   <- 1/(1+exp(-(interceptB + slopeB * log(x[j]/(1-x[j])))))
+         opp2[j] <- (x[j]-x[(j-1)])*y2[(j-1)]+(x[j]-x[(j-1)])*(y2[j]-y2[(j-1)])/2
+         y3A[j] <- 1/(1+exp(-(LAMBDA_A*exp(beta_A/2) + exp(beta_A)*log(x[j]/(1-x[j])))))
+         opp3A[j] <- (x[j]-x[(j-1)])*y3A[(j-1)]+(x[j]-x[(j-1)])*(y3A[j]-y2[(j-1)])/2
+         y3B[j] <- 1/(1+exp(-(LAMBDA_B*exp(beta_B/2) + exp(beta_B)*log(x[j]/(1-x[j])))))
+         opp3B[j] <- (x[j]-x[(j-1)])*y3B[(j-1)]+(x[j]-x[(j-1)])*(y3B[j]-y2[(j-1)])/2
+      }
+      opp1[(P+1)] <- (1-x[P])*y1[P]+(1-x[P])*(1-y1[P])/2      
+      aucA <- sum(opp1)
+      opp2[(P+1)] <- (1-x[P])*y2[P]+(1-x[P])*(1-y2[P])/2      
+      aucB <- sum(opp2)
+      delta_AUC <- aucA-aucB
+      opp3A[(P+1)] <- (1-x[P])*y3A[P]+(1-x[P])*(1-y3A[P])/2      
+      aucRG_A <- sum(opp3A) 
+      opp3B[(P+1)] <- (1-x[P])*y3B[P]+(1-x[P])*(1-y3B[P])/2      
+      aucRG_B <- sum(opp3B) 
+      delta_AUC_RG <- aucRG_A - aucRG_B
    }  
 "
 
@@ -182,12 +225,19 @@ update(m, iternr)                                                               
 x = coda.samples(m, c("meanalpha","Sigma",
        "meansensitivityA","meansensitivityB","meanspecificityA","meanspecificityB",
        "sensdifferenceBvsA","specdifferenceBvsA","sensoddsratioAvsB","specoddsratioAvsB",
-        "slopeA","slopeB","interceptA","interceptB"), n.iter=iternr)                                    # draw iternr parameters from the posterior-distributions
-#plot(x,ask=TRUE)                                                                                       # check for convergence 
-                                                                                                        #     trace-plots should display stable chaos
+        "slopeA","slopeB","interceptA","interceptB","aucA","aucB","delta_AUC",
+        "beta_A","LAMBDA_A","THETA_A","skwtheta_A","skwalfa_A",
+        "beta_B","LAMBDA_B","THETA_B","skwtheta_B","skwalfa_B",
+        "aucRG_B","aucRG_A","delta_AUC_RG"), n.iter=iternr)                                             # draw iternr parameters from the posterior-distributions
+
+#dev.new()
+#pdf("traceplots.pdf")
+#plot(x)   #,ask=TRUE)   
+#dev.off()                                                                                               # check for convergence: trace-plots should display stable chaos
+
 # summary of the structural and derived parameters
 summary(x)[[1]] 
-help1 = t(apply(x[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))                            # calculate statistics
+help1 = t(apply(x[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))                            # calculate some statistics
 
 dev.new()
 #pdf("fig0.pdf")
@@ -458,6 +508,21 @@ mtext("(observed values are indicated by '+')",line=-3,outer=TRUE,cex=0.75)
 #dev.off()
 
 
+### do separate analyses with the mada package
+library(mada)
+xx=data.frame(TP=d$TPsA,FN=d$FNsA,FP=d$FPsA,TN=d$TNsA)
+madares=reitsma(xx, method = "reml",predict=T,sroc.type="naive")
+summary(madares)
+AUC(madares,sroc.type="naive")    # 0.688  vgl de mijne is 0.713
+dev.new()
+plot(madares,predict=T,type="naive",main="test A")
+
+xx=data.frame(TP=d$TPsB,FN=d$FNsB,FP=d$FPsB,TN=d$TNsB)
+madares=reitsma(xx, method = "reml",predict=T,sroc.type="naive")
+summary(madares)
+AUC(madares,sroc.type="naive")    # 0.688  vgl de mijne is 0.713
+dev.new()
+plot(madares,predict=T,type="naive",main="test B")
 
 
 
