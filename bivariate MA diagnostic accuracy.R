@@ -107,7 +107,7 @@ modelstring1 <- "
          y2[j] <- 1/(1+exp(-(a2 + b2 * log(x[j]/(1-x[j])))))
          opp2[j] <- (x[j]-x[(j-1)])*y2[(j-1)]+(x[j]-x[(j-1)])*(y2[j]-y2[(j-1)])/2
          y3[j] <- 1/(1+exp(-(LAMBDA*exp(beta/2) + exp(beta)*log(x[j]/(1-x[j])))))
-         opp3[j] <- (x[j]-x[(j-1)])*y3[(j-1)]+(x[j]-x[(j-1)])*(y3[j]-y2[(j-1)])/2
+         opp3[j] <- (x[j]-x[(j-1)])*y3[(j-1)]+(x[j]-x[(j-1)])*(y3[j]-y3[(j-1)])/2
       }
       opp1[(P+1)] <- (1-x[P])*y1[P]+(1-x[P])*(1-y1[P])/2      
       auc1 <- sum(opp1)
