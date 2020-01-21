@@ -187,9 +187,9 @@ modelstring = "
          y2[j]   <- 1/(1+exp(-(interceptB + slopeB * log(x[j]/(1-x[j])))))
          opp2[j] <- (x[j]-x[(j-1)])*y2[(j-1)]+(x[j]-x[(j-1)])*(y2[j]-y2[(j-1)])/2
          y3A[j] <- 1/(1+exp(-(LAMBDA_A*exp(beta_A/2) + exp(beta_A)*log(x[j]/(1-x[j])))))
-         opp3A[j] <- (x[j]-x[(j-1)])*y3A[(j-1)]+(x[j]-x[(j-1)])*(y3A[j]-y2[(j-1)])/2
+         opp3A[j] <- (x[j]-x[(j-1)])*y3A[(j-1)]+(x[j]-x[(j-1)])*(y3A[j]-y3A[(j-1)])/2
          y3B[j] <- 1/(1+exp(-(LAMBDA_B*exp(beta_B/2) + exp(beta_B)*log(x[j]/(1-x[j])))))
-         opp3B[j] <- (x[j]-x[(j-1)])*y3B[(j-1)]+(x[j]-x[(j-1)])*(y3B[j]-y2[(j-1)])/2
+         opp3B[j] <- (x[j]-x[(j-1)])*y3B[(j-1)]+(x[j]-x[(j-1)])*(y3B[j]-y3B[(j-1)])/2
       }
       opp1[(P+1)] <- (1-x[P])*y1[P]+(1-x[P])*(1-y1[P])/2      
       aucA <- sum(opp1)
@@ -508,7 +508,7 @@ mtext("(observed values are indicated by '+')",line=-3,outer=TRUE,cex=0.75)
 #dev.off()
 
 
-### do separate analyses with the mada package
+### do separate analyses with the mada package, just for fun and comparison sake
 library(mada)
 xx=data.frame(TP=d$TPsA,FN=d$FNsA,FP=d$FPsA,TN=d$TNsA)
 madares=reitsma(xx, method = "reml",predict=T,sroc.type="naive")
@@ -523,6 +523,17 @@ summary(madares)
 AUC(madares,sroc.type="naive")    # 0.688  vgl de mijne is 0.713
 dev.new()
 plot(madares,predict=T,type="naive",main="test B")
+
+
+
+
+
+
+
+
+
+
+
 
 
 
