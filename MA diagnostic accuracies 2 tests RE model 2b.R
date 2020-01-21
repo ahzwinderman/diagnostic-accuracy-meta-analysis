@@ -253,7 +253,7 @@ quantile(x[[1]][,which(colnames(x[[1]])=="specdifferenceBvsA")],probs=c(0.025,0.
 title("posterior distributions of population parameters",line=-2,outer=TRUE)   
 #dev.off()
 
-x2 = coda.samples(m,c("sensA","sensB","specA","specB","ORcases","ORcontrols"), n.iter=iternr)
+x2 = coda.samples(m,c("sensA","sensB","specA","specB","ORcases","ORcontrols","alpha"), n.iter=iternr)
 help2=t(apply(x2[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))
 
 dev.new()
@@ -431,9 +431,9 @@ covv=cov(x[[1]][,which(colnames(x[[1]])=="meanalpha[1]")],x[[1]][,which(colnames
 sematrix=matrix(c(var1,-covv,-covv,var2),ncol=2,nrow=2)
 punten1=confellips(mu=c(-mu1,mu2),sigma=sematrix,alfa=0.05,npoints=1000)
 lines(invlogit(punten1[,1]),invlogit(punten1[,2]),col=3,lty=2)
-var1= stats[which(row.names(stats)=="Sigma[3,3]"),2]
-var2= stats[which(row.names(stats)=="Sigma[1,1]"),2]
-covv= stats[which(row.names(stats)=="Sigma[1,3]"),2]
+var1= stats[which(row.names(stats)=="Sigma[3,3]"),1]
+var2= stats[which(row.names(stats)=="Sigma[1,1]"),1]
+covv= stats[which(row.names(stats)=="Sigma[1,3]"),1]
 sematrix=matrix(c(var1,-covv,-covv,var2),ncol=2,nrow=2)
 punten1=confellips(mu=c(-mu1,mu2),sigma=sematrix,alfa=0.05,npoints=1000)
 lines(invlogit(punten1[,1]),invlogit(punten1[,2]),col=3,lty=1)
@@ -453,10 +453,10 @@ covv=cov(x[[1]][,which(colnames(x[[1]])=="meanalpha[1]")]+x[[1]][,which(colnames
 sematrix=matrix(c(var1,-covv,-covv,var2),ncol=2,nrow=2)
 punten1=confellips(mu=c(-mu1,mu2),sigma=sematrix,alfa=0.05,npoints=1000)
 lines(invlogit(punten1[,1]),invlogit(punten1[,2]),col=2,lty=2)
-var1= stats[which(row.names(stats)=="Sigma[3,3]"),2] + stats[which(row.names(stats)=="Sigma[4,4]"),2] + 2*stats[which(row.names(stats)=="Sigma[3,4]"),2]
-var2= stats[which(row.names(stats)=="Sigma[1,1]"),2] + stats[which(row.names(stats)=="Sigma[2,2]"),2] + 2*stats[which(row.names(stats)=="Sigma[1,2]"),2]
-covv= stats[which(row.names(stats)=="Sigma[1,3]"),2] + stats[which(row.names(stats)=="Sigma[1,4]"),2] + 
-      stats[which(row.names(stats)=="Sigma[2,3]"),2] + stats[which(row.names(stats)=="Sigma[2,4]"),2]
+var1= stats[which(row.names(stats)=="Sigma[3,3]"),1] + stats[which(row.names(stats)=="Sigma[4,4]"),1] + 2*stats[which(row.names(stats)=="Sigma[3,4]"),1]
+var2= stats[which(row.names(stats)=="Sigma[1,1]"),1] + stats[which(row.names(stats)=="Sigma[2,2]"),1] + 2*stats[which(row.names(stats)=="Sigma[1,2]"),1]
+covv= stats[which(row.names(stats)=="Sigma[1,3]"),1] + stats[which(row.names(stats)=="Sigma[1,4]"),1] + 
+      stats[which(row.names(stats)=="Sigma[2,3]"),1] + stats[which(row.names(stats)=="Sigma[2,4]"),1]
 sematrix=matrix(c(var1,-covv,-covv,var2),ncol=2,nrow=2)
 punten1=confellips(mu=c(-mu1,mu2),sigma=sematrix,alfa=0.05,npoints=1000)
 lines(invlogit(punten1[,1]),invlogit(punten1[,2]),col=2,lty=1)
@@ -487,7 +487,6 @@ points(help1[which(row.names(help1)=="meanalpha[5]"),2],-N-2,pch=16)
 lines(c(help1[which(row.names(help1)=="meanalpha[5]"),1],help1[which(row.names(help1)=="meanalpha[5]"),3]),c(-N-2,-N-2))
 abline(v=help1[which(row.names(help1)=="meanalpha[5]"),2],lty=3)
 points(logORs,(-(N-nrow(d1)):(-1)),pch="+",col=1)
-
 logORs=log(((d2$Comm+delta)*(d2$Copp+delta)) / ((d2$Copm+delta)+(d2$Comp+delta)))
 selogORs = sqrt((1/(d2$Copp+delta)) + (1/(d2$Comp+delta)) + (1/(d2$Copm+delta)) + (1/(d2$Comm+delta)))
 minxx=min((logORs-1.96*selogORs))
