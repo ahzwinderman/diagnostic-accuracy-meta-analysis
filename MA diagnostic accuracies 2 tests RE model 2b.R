@@ -63,9 +63,9 @@ names(d2)=c("Capp","Capm","Camp","Camm","Copp","Copm","Comp","Comm")
 
 
 ###  some settings
-delta=0.5             # add 0.5 to all TN, FP, TP, FN?
-iternr = 50000        # maximum number of iterations
-xas=seq(0.01,0.99,0.01)
+delta=0.5                 # add 0.5 to all TN, FP, TP, FN?
+iternr = 50000            # maximum number of iterations
+xas=seq(0.01,0.99,0.01)   # steps on the x-axis for calculation of roc-curves and AUCs
 P=length(xas)
 
 
@@ -115,6 +115,7 @@ jagsdatalist=list(
 ### model in JAGS code
 modelstring = "
    model {
+      # sample parameters from the population distribution and transform
       for (i in 1:N) {
          alpha[i,1:6] ~ dmnorm(meanalpha[1:6],InvSigma[1:6,1:6])
          sensB[i] <- 1/(1+exp(-1*(alpha[i,1])))
@@ -124,6 +125,7 @@ modelstring = "
          ORcases[i]    <- exp(alpha[i,5])
          ORcontrols[i] <- exp(alpha[i,6])
       }
+      # likelihoods of the observed data: marginals
       # for all type-1 and type-2 studies
       for (i in 1:N){ 
          TPsA[i] ~ dbin(sensA[i],nAcases[i])
@@ -131,14 +133,17 @@ modelstring = "
          TNsA[i] ~ dbin(specA[i],nAcontrols[i])
          TNsB[i] ~ dbin(specB[i],nBcontrols[i])
       }
+      # likelihoods of the 2-by-2 tables for cases and controls
       # only for type-2 studies
       for ( i in 1:N2) {
          Capp[i] ~ dhyper(CapA[i],(Ncases[i]-CapA[i]),   CapB[i],ORcases[i])
          Comm[i] ~ dhyper(ComA[i],(Ncontrols[i]-ComA[i]),ComB[i],ORcontrols[i])
       }
-
+      # priors
       meanalpha[1:6] ~ dmnorm(zero6[1:6],prec6[1:6,1:6])
       InvSigma[1:6,1:6] ~ dwish(InvTau[1:6,1:6],6)
+
+      # transformations of population parameters
       Sigma[1:6,1:6] <- inverse(InvSigma[1:6,1:6])
 
       meansensitivityB <- 1/(1+exp(-1*(meanalpha[1])))
@@ -151,7 +156,7 @@ modelstring = "
       sensoddsratioAvsB <- exp(meanalpha[2])
       specoddsratioAvsB <- exp(meanalpha[4])
       
-      # parameters of the ROC-curve
+      # parameters of the ROC-curve: named naive by mada
       slopeA     <- -1*(Sigma[1,3]+Sigma[1,4]+Sigma[2,3]+Sigma[2,4])/(Sigma[3,3]+Sigma[4,4]+2*Sigma[3,4])
       slopeB     <- -1*Sigma[3,1]/Sigma[3,3]
       interceptB <-  meanalpha[1] + slopeB*meanalpha[3]
@@ -204,7 +209,7 @@ modelstring = "
    }  
 "
 
-### useful functions
+### some useful functions
 logit = function(x){log(x/(1-x))}
 invlogit = function(x) {exp(x)/(1+exp(x))}
 confellips=function(mu,sigma,alfa,npoints) {
@@ -469,13 +474,17 @@ yyy=invlogit(stats[which(row.names(stats)=="interceptA"),1] + stats[which(row.na
 lines(xxx[xxx>minxxx & xxx<maxxxx & yyy>minyyy & yyy<maxyyy],yyy[xxx>minxxx & xxx<maxxxx & yyy>minyyy & yyy<maxyyy],lty=1,col=2)
 #dev.off()
 
+
+
 dev.new()
 #pdf("fig4.pdf)
 layout(matrix(c(1,2),nrow=1,ncol=2))
-logORs=log(((d2$Capp+delta)*(d2$Camm+delta)) / ((d2$Capm+delta)+(d2$Camp+delta)))
+logORs=log(((d2$Capp+delta)*(d2$Camm+delta)) / ((d2$Capm+delta)*(d2$Camp+delta)))
 selogORs = sqrt((1/(d2$Capp+delta)) + (1/(d2$Camp+delta)) + (1/(d2$Capm+delta)) + (1/(d2$Camm+delta)))
 minxx=min((logORs-1.96*selogORs))
+#minxx=-6
 maxxx=max((logORs+1.96*selogORs))
+#maxxx=6
 plot(1,1,xlab="log Odds Ratio in Cases",ylab="study number",xlim=c(minxx,maxxx),main="",ylim=c(-(N+2),-1),type="n",yaxt="n")
 axis(2,at=c(-(N+2):(-1)),labels=c("overall","",1:N))
 for (i in 1:N) {
@@ -487,7 +496,7 @@ points(help1[which(row.names(help1)=="meanalpha[5]"),2],-N-2,pch=16)
 lines(c(help1[which(row.names(help1)=="meanalpha[5]"),1],help1[which(row.names(help1)=="meanalpha[5]"),3]),c(-N-2,-N-2))
 abline(v=help1[which(row.names(help1)=="meanalpha[5]"),2],lty=3)
 points(logORs,(-(N-nrow(d1)):(-1)),pch="+",col=1)
-logORs=log(((d2$Comm+delta)*(d2$Copp+delta)) / ((d2$Copm+delta)+(d2$Comp+delta)))
+logORs=log(((d2$Comm+delta)*(d2$Copp+delta)) / ((d2$Copm+delta)*(d2$Comp+delta)))
 selogORs = sqrt((1/(d2$Copp+delta)) + (1/(d2$Comp+delta)) + (1/(d2$Copm+delta)) + (1/(d2$Comm+delta)))
 minxx=min((logORs-1.96*selogORs))
 maxxx=max((logORs+1.96*selogORs))
@@ -514,14 +523,18 @@ madares=reitsma(xx, method = "reml",predict=T,sroc.type="naive")
 summary(madares)
 AUC(madares,sroc.type="naive")    # 0.688  vgl de mijne is 0.713
 dev.new()
-plot(madares,predict=T,type="naive",main="test A")
+par(mfrow=c(1,2))
+plot(madares,predict=T,type="naive",main="test A: naive")
+plot(madares,predict=T,type="ruttergatsonis",main="test A: Rutter-Gatsonis")
 
 xx=data.frame(TP=d$TPsB,FN=d$FNsB,FP=d$FPsB,TN=d$TNsB)
 madares=reitsma(xx, method = "reml",predict=T,sroc.type="naive")
 summary(madares)
 AUC(madares,sroc.type="naive")    # 0.688  vgl de mijne is 0.713
 dev.new()
-plot(madares,predict=T,type="naive",main="test B")
+par(mfrow=c(1,2))
+plot(madares,predict=T,type="naive",main="test B: naive")
+plot(madares,predict=T,type="ruttergatsonis",main="test B: Rutter-Gatsonis")
 
 
 
