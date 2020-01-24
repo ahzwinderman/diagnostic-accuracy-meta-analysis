@@ -139,7 +139,7 @@ modelstring = "
          Capp[i] ~ dhyper(CapA[i],(Ncases[i]-CapA[i]),   CapB[i],ORcases[i])
          Comm[i] ~ dhyper(ComA[i],(Ncontrols[i]-ComA[i]),ComB[i],ORcontrols[i])
       }
-      # priors
+      # noninformative priors
       meanalpha[1:6] ~ dmnorm(zero6[1:6],prec6[1:6,1:6])
       InvSigma[1:6,1:6] ~ dwish(InvTau[1:6,1:6],6)
 
@@ -521,7 +521,7 @@ library(mada)
 xx=data.frame(TP=d$TPsA,FN=d$FNsA,FP=d$FPsA,TN=d$TNsA)
 madares=reitsma(xx, method = "reml",predict=T,sroc.type="naive")
 summary(madares)
-AUC(madares,sroc.type="naive")    # 0.688  vgl de mijne is 0.713
+AUC(madares,sroc.type="naive")
 dev.new()
 par(mfrow=c(1,2))
 plot(madares,predict=T,type="naive",main="test A: naive")
@@ -530,7 +530,7 @@ plot(madares,predict=T,type="ruttergatsonis",main="test A: Rutter-Gatsonis")
 xx=data.frame(TP=d$TPsB,FN=d$FNsB,FP=d$FPsB,TN=d$TNsB)
 madares=reitsma(xx, method = "reml",predict=T,sroc.type="naive")
 summary(madares)
-AUC(madares,sroc.type="naive")    # 0.688  vgl de mijne is 0.713
+AUC(madares,sroc.type="naive")
 dev.new()
 par(mfrow=c(1,2))
 plot(madares,predict=T,type="naive",main="test B: naive")
