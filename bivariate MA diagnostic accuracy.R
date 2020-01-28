@@ -209,7 +209,7 @@ s1kw=summary(output.raw1)$statistics[which(namen=="Sigma[1,1]"),1]
 s2kw=summary(output.raw1)$statistics[which(namen=="Sigma[2,2]"),1]
 s12= summary(output.raw1)$statistics[which(namen=="Sigma[2,1]"),1]
 covmatrix=matrix(c(s2kw,-s12,-s12,s1kw),nrow=2,ncol=2)
-se12=cov(output.raw1[[1]][,5],output.raw1[[1]][,6])#/sqrt(length(output.raw1[[1]][,6]))       
+se12=cov(output.raw1[[1]][,5],output.raw1[[1]][,6])#/sqrt(length(output.raw1[[1]][,6]))           # only chain 1 for covariance    
 sematrix=matrix(c(sekw2, -se12, -se12,sekw1),nrow=2,ncol=2)
 symbolsize=minsize+(maxsize-minsize)*((ncases+ncontrols)-min((ncases+ncontrols)))/(max((ncases+ncontrols))-min((ncases+ncontrols)))
 

@@ -240,6 +240,11 @@ x = coda.samples(m, c("meanalpha","Sigma",
 #plot(x)   #,ask=TRUE)   
 #dev.off()                                                                                               # check for convergence: trace-plots should display stable chaos
 
+
+
+####### since the convergence was OK for the datasets tried out so far, the results below are based only on sample drawn from the first chain
+
+
 # summary of the structural and derived parameters
 summary(x)[[1]] 
 help1 = t(apply(x[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))                            # calculate some statistics

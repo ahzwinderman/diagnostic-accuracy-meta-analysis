@@ -129,6 +129,10 @@ update(m, 50000)                                                                
 x = coda.samples(m, c("meanalpha","Sigma","sensdifferenceBvsA","specdifferenceBvsA",
        "sensoddsratioAvsB","specoddsratioAvsB"), n.iter=50000)                                         # draw 50000 parameters from the posterior-distributions
 #plot(x,ask=TRUE)                                                                                       # check for convergende 
+
+
+####### since the convergence was OK for the datasets tried out so far, the results below are based only on sample drawn from the first chain
+
                                                                                                        #     trace-plots should display stable chaos
 # summary of the structural and derived parameters
 summary(x)[[1]]                                                                                        # calculate statistics
