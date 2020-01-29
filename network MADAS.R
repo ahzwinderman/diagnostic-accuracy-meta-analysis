@@ -92,10 +92,10 @@ modelstring = "
       }
       ### likelihoods of the 2-by-2 tables for cases and controls
       ### only for type-2 studies
-#      for ( i in 1:N2) {
-#         Capp[i] ~ dhyper((Capp[i]+Capm[i]),(Camp[i]+Camm[i]),(Capp[i]+Camp[i]),ORcases[studynr2[i]])
-#         Comm[i] ~ dhyper((Comm[i]+Comp[i]),(Copm[i]+Copp[i]),(Comm[i]+Copm[i]),ORcontrols[studynr2[i]])
-#      }
+      for ( i in 1:N2) {
+         Capp[i] ~ dhyper(Cap1[i],Cam1[i],Ca1p[i],ORcases[studynr2[i]])
+         Comm[i] ~ dhyper(Com1[i],Cop1[i],Co1m[i],ORcontrols[studynr2[i]])
+      }
       ### noninformative priors
       meanalpha[1:npar] ~ dmnorm(zeroos[1:npar],prec[1:npar,1:npar])
       InvSigma[1:npar,1:npar] ~ dwish(InvTau[1:npar,1:npar],npar)
@@ -146,8 +146,8 @@ InvTau=diag(0.1,nrow=2*K+2,ncol=2*K+2)
 jagsdatalist=list(npar=2*K+2, K=K, Nstudy=N, Ntotaal=nrow(d),
   TP=d$TP, cases=d$cases, TN=d$TN, controls=d$controls, testnr=d$testnr,
   studynr=d$nummer, N2=nrow(d2), studynr2=unique(d[(nrow(d)-nrow(d2)*2+1):nrow(d),"nummer"]),
-  Capp=d2$Capp, Capm=d2$Capm, Camp=d2$Capm, Camm=d2$Camm,
-  Copp=d2$Copp, Copm=d2$Copm, Comp=d2$Copm, Comm=d2$Comm,
+  Capp=d2$Capp, Cap1=(d2$Capp+d2$Capm), Cam1=(d2$Camm+d2$Camp), Ca1p=(d2$Capp+d2$Camp),
+  Comm=d2$Comm, Com1=(d2$Comm+d2$Comp), Cop1=(d2$Copp+d2$Copm), Co1m=(d2$Comm+d2$Copm),
   zeroos=zeroos, prec=prec, InvTau=InvTau, 
   x=xas, P=P)  
 
@@ -165,17 +165,14 @@ x = coda.samples(m, c("meanalpha","Sigma", "meansensitivity","meanspecificity",
 #dev.off()                                                                                               # check for convergence: trace-plots should display stable chaos
 
 
-# results below are based on samples drawn for the first chain only. This seemed to be good enough for the current data
-
-
 # summary of the structural and derived parameters
-help0=summary(x)[[1]] 
-help0
-help1 = t(apply(x[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))                            # calculate some statistics
+helpm1=summary(x)
+helpm1
+help0=helpm1$statistics
+help1=helpm1$quantiles[,c(1,3,5)]
 
 
-
-
+# plot de posterior medians van sens/spec (en 95% cred.intervals) instead of the observed sens/spec ???
 
 #### plot in ROC-space
 sens=(d$TP+delta)/(d$cases+2*delta)
@@ -197,13 +194,13 @@ for (j in 1:K) {
    mu1= help0[which(row.names(help0)==paste("meanalpha[",(K+j),"]",sep="")),1]
    var2= help0[which(row.names(help0)==paste("meanalpha[",j,"]",sep="")),2]^2
    var1= help0[which(row.names(help0)==paste("meanalpha[",(K+j),"]",sep="")),2]^2
-   covv=cov(x[[1]][,which(colnames(x[[1]])==paste("meanalpha[",j,"]",sep=""))],x[[1]][,which(colnames(x[[1]])==paste("meanalpha[",(K+j),"]",sep=""))])
+   covv=cov(x[[1]][,which(colnames(x[[1]])==paste("meanalpha[",j,"]",sep=""))],x[[1]][,which(colnames(x[[1]])==paste("meanalpha[",(K+j),"]",sep=""))])             # covariance based only on samples in chain 1
    sematrix=matrix(c(var1,-covv,-covv,var2),ncol=2,nrow=2)
    punten1=confellips(mu=c(-mu1,mu2),sigma=sematrix,alfa=0.05,npoints=1000)
    lines(invlogit(punten1[,1]),invlogit(punten1[,2]),col=j+1,lty=2)
    var1= help0[which(row.names(help0)==paste("Sigma[",(K+j),",",(K+j),"]",sep="")),1]
    var2= help0[which(row.names(help0)==paste("Sigma[",j,",",j,"]",sep="")),1]
-   covv= cov(x[[1]][,which(colnames(x[[1]])==paste("Sigma[",j,",",j,"]",sep=""))],x[[1]][,which(colnames(x[[1]])==paste("Sigma[",(K+j),",",(K+j),"]",sep=""))])
+   covv= cov(x[[1]][,which(colnames(x[[1]])==paste("Sigma[",j,",",j,"]",sep=""))],x[[1]][,which(colnames(x[[1]])==paste("Sigma[",(K+j),",",(K+j),"]",sep=""))])    # covariance based only on samples in chain 1
    sematrix=matrix(c(var1,-covv,-covv,var2),ncol=2,nrow=2)
    punten1=confellips(mu=c(-mu1,mu2),sigma=sematrix,alfa=0.05,npoints=1000)
    lines(invlogit(punten1[,1]),invlogit(punten1[,2]),col=j+1,lty=1)
@@ -225,14 +222,25 @@ tel=0
 for (j in 1:(K-1))  {
    for (jj in (j+1):K) {
       tel=tel+1
-      delta_auc_na[1:3] = quantile(x[[1]][,which(colnames(x[[1]])==paste("auc_na[",j,"]",sep=""))] - x[[1]][,which(colnames(x[[1]])==paste("auc_na[",jj,"]",sep=""))],probs=c(0.025,0.5,0.975))
-      delta_auc_rg[1:3] = quantile(x[[1]][,which(colnames(x[[1]])==paste("auc_rg[",j,"]",sep=""))] - x[[1]][,which(colnames(x[[1]])==paste("auc_rg[",jj,"]",sep=""))],probs=c(0.025,0.5,0.975))
+      temp1=temp2=NA
+      temp1=x[[1]][,which(colnames(x[[1]])==paste("auc_na[",j,"]",sep=""))] - x[[1]][,which(colnames(x[[1]])==paste("auc_na[",jj,"]",sep=""))]
+      temp2=x[[2]][,which(colnames(x[[1]])==paste("auc_na[",j,"]",sep=""))] - x[[1]][,which(colnames(x[[2]])==paste("auc_na[",jj,"]",sep=""))]
+      delta_auc_na[1:3] = quantile(c(temp1,temp2),probs=c(0.025,0.5,0.975))
+      temp1=temp2=NA
+      temp1=x[[1]][,which(colnames(x[[1]])==paste("auc_rg[",j,"]",sep=""))] - x[[1]][,which(colnames(x[[1]])==paste("auc_rg[",jj,"]",sep=""))]
+      temp2=x[[2]][,which(colnames(x[[1]])==paste("auc_rg[",j,"]",sep=""))] - x[[1]][,which(colnames(x[[2]])==paste("auc_rg[",jj,"]",sep=""))]
+      delta_auc_rg[1:3] = quantile(c(temp1,temp2),probs=c(0.025,0.5,0.975))
       AUCs[tel,1:9]=c(round(c(tel,j,jj),0),c(delta_auc_na[1:3],delta_auc_rg[1:3]))
    }
 }
 colnames(AUCs)=c("pairnr","test1","test2","delta_na_low","delta_na_median","delta_na_high","delta_rg_low","delta_rg_median","delta_nrg_high")
 AUCs
 
+# differences between senss of all pairs of tests
+#    median differences and the 2.5th and 97.5th percentiles
+
+# differences between specs of all pairs of tests
+#    median differences and the 2.5th and 97.5th percentiles
 
 
 

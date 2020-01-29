@@ -1,0 +1,45 @@
+﻿studynr,testnr,TP,cases,TN,controls,studyname,testname
+1,1,14,40,90,100,Sozen,cytology
+1,2,28,40,68,100,Sozen,BTA stat
+1,3,29,40,81,100,Sozen,NMP22
+2,1,18,55,50,50,Leyh,cytology
+2,2,40,55,26,50,Leyh,BTA stat
+3,1,2,6,185,193,Sharma,cytology
+3,2,4,6,159,193,Sharma,BTA stat
+3,3,4,6,166,193,Sharma,NMP22
+4,1,24,54,55,59,Ramakumar,cytology
+4,2,42,57,101,139,Ramakumar,BTA stat
+4,3,30,57,83,193,Ramakumar,NMP22
+5,1,38,71,11,14,Pode,cytology
+5,2,64,71,13,17,Pode,BTA stat
+6,1,6,18,312,312,Zippe,cytology
+6,3,18,18,267,312,Zippe,NMP22
+7,1,50,95,94,105,Casella,cytology
+7,3,67,130,88,105,Casella,NMP22
+8,1,19,47,28,30,Landman,cytology
+8,3,38,47,23,30,Landman,NMP22
+9,1,24,32,36,58,Paoluzzi,cytology
+9,3,27,32,36,58,Paoluzzi,NMP22
+10,1,39,70,32,36,Lee,cytology
+10,3,53,70,26,36,Lee,NMP22
+11,1,5,16,76,80,Chahal,cytology
+11,3,7,16,73,80,Chahal,NMP22
+12,1,18,40,124,129,Lahme,cytology
+12,3,25,40,98,129,Lahme,NMP22
+13,1,22,33,26,26,Ito,cytology
+14,1,21,60,63,70,Johnston,cytology
+15,1,2,2,52,52,Kirollos,cytology
+16,1,14,23,83,84,Mian,cytology
+17,1,79,84,51,55,Mondal,cytology
+18,1,15,28,34,34,Murphy,cytology
+19,1,42,51,209,214,O'Donoghue,cytology
+20,1,19,40,40,40,Planz,cytology
+21,1,105,147,35,47,Priolo,cytology
+22,1,41,81,13,20,Zhang,cytology
+23,1,16,26,14,14,Cajulis,cytology
+24,1,48,80,13,14,Casetta,cytology
+25,2,105,167,174,187,Heicappell,BTA stat
+26,3,59,109,69,73,Abbate,NMP22
+27,3,20,27,6,10,Oge,NMP22
+28,2,50,68,28,50,Giannopoulos,BTA stat
+28,3,47,68,34,50,Giannopoulos,NMP22

@@ -240,18 +240,15 @@ x = coda.samples(m, c("meanalpha","Sigma",
 #plot(x)   #,ask=TRUE)   
 #dev.off()                                                                                               # check for convergence: trace-plots should display stable chaos
 
-
-
-####### since the convergence was OK for the datasets tried out so far, the results below are based only on sample drawn from the first chain
-
-
 # summary of the structural and derived parameters
-summary(x)[[1]] 
-help1 = t(apply(x[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))                            # calculate some statistics
+summary(x)      
+#help1 = t(apply(x[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))                            # calculate some statistics
+help1=summary(x)$quantiles[,c(1,3,5)]
 
 dev.new()
 #pdf("fig0.pdf")
 layout(matrix(c(1,3,2,4),nrow=2,ncol=2))
+####### since the convergence was OK for the datasets tried out so far, the results below are based only on sample drawn from the first chain
 hist(log(x[[1]][,which(colnames(x[[1]])=="sensoddsratioAvsB")]),xlab="log odds ratio of sensitivity A vs B",main="")   # a histogram of the samples for one parameter
 quantile(x[[1]][,which(colnames(x[[1]])=="sensoddsratioAvsB")],probs=c(0.025,0.25,0.50,0.75,0.975))                    # a 95% credibility interval for this parameter
 hist(log(x[[1]][,which(colnames(x[[1]])=="specoddsratioAvsB")]),xlab="log odds ratio of specificity A vs B",main="")   # a histogram of the samples for one parameter
@@ -264,7 +261,8 @@ title("posterior distributions of population parameters",line=-2,outer=TRUE)
 #dev.off()
 
 x2 = coda.samples(m,c("sensA","sensB","specA","specB","ORcases","ORcontrols","alpha"), n.iter=iternr)
-help2=t(apply(x2[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))
+#help2=t(apply(x2[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))
+help2=summary(x2)$quantiles[,c(1,3,5)]
 
 dev.new()
 #pdf("fig1.pdf")
@@ -337,7 +335,7 @@ pp1=(TPsB+delta)/(nBcases+2*delta)
 points(pp1-pp2,(-N:-1),pch="+",cex=1)
 for (i in 1:N) {
    temp1 = quantile(as.numeric(x2[[1]][,which(colnames(x2[[1]])==paste("sensB[",i,"]",sep=""))]) - 
-                    as.numeric(x2[[1]][,which(colnames(x2[[1]])==paste("sensA[",i,"]",sep=""))]),probs=c(0.025,0.50,0.975))
+                    as.numeric(x2[[1]][,which(colnames(x2[[1]])==paste("sensA[",i,"]",sep=""))]),probs=c(0.025,0.50,0.975))           # based only on samples from chain 1
    points(temp1[2],-N+(i-1),pch=16)
    lines( c(temp1[1],temp1[3]),c(-N+(i-1),-N+(i-1)))
 }
@@ -351,7 +349,7 @@ pp1=(TNsB+delta)/(nBcontrols+2*delta)
 points(pp1-pp2,(-N:-1),pch="+",cex=1)
 for (i in 1:N) {
    temp1 = quantile(as.numeric(x2[[1]][,which(colnames(x2[[1]])==paste("specB[",i,"]",sep=""))]) - 
-                    as.numeric(x2[[1]][,which(colnames(x2[[1]])==paste("specA[",i,"]",sep=""))]),probs=c(0.025,0.50,0.975))
+                    as.numeric(x2[[1]][,which(colnames(x2[[1]])==paste("specA[",i,"]",sep=""))]),probs=c(0.025,0.50,0.975))           # based only on samples from chain 1
    points(temp1[2],-N+(i-1),pch=16)
    lines( c(temp1[1],temp1[3]),c(-N+(i-1),-N+(i-1)))
 }
@@ -378,7 +376,7 @@ for (i in 1:N) {
    temp1= as.numeric(x2[[1]][,which(colnames(x2[[1]])==paste("sensA[",i,"]",sep=""))])
    temp2= as.numeric(x2[[1]][,which(colnames(x2[[1]])==paste("sensB[",i,"]",sep=""))])
    temp3 = log((temp1*(1-temp2))/((1-temp1)*temp2))
-   temp4 = quantile(temp3,probs=c(0.025,0.50,0.975))
+   temp4 = quantile(temp3,probs=c(0.025,0.50,0.975))                                                                                   # based only on samples from chain 1
    points(temp4[2],-N+(i-1),pch=16)
    lines( c(temp4[1],temp4[3]),c(-N+(i-1),-N+(i-1)))
 }
@@ -405,7 +403,7 @@ for (i in 1:N) {
    temp1= as.numeric(x2[[1]][,which(colnames(x2[[1]])==paste("specA[",i,"]",sep=""))])
    temp2= as.numeric(x2[[1]][,which(colnames(x2[[1]])==paste("specB[",i,"]",sep=""))])
    temp3 = log((temp1*(1-temp2))/((1-temp1)*temp2))
-   temp4 = quantile(temp3,probs=c(0.025,0.50,0.975))
+   temp4 = quantile(temp3,probs=c(0.025,0.50,0.975))                                                                                   # based only on samples from chain 1
    points(temp4[2],-N+(i-1),pch=16)
    lines( c(temp4[1],temp4[3]),c(-N+(i-1),-N+(i-1)))
 }
@@ -437,7 +435,7 @@ mu1= stats[which(row.names(stats)=="meanalpha[3]"),1]
 mu2= stats[which(row.names(stats)=="meanalpha[1]"),1]
 var1= stats[which(row.names(stats)=="meanalpha[3]"),2]^2
 var2= stats[which(row.names(stats)=="meanalpha[1]"),2]^2
-covv=cov(x[[1]][,which(colnames(x[[1]])=="meanalpha[1]")],x[[1]][,which(colnames(x[[1]])=="meanalpha[3]")])
+covv=cov(x[[1]][,which(colnames(x[[1]])=="meanalpha[1]")],x[[1]][,which(colnames(x[[1]])=="meanalpha[3]")])              # only samples from chain 1 to estimate this covariance
 sematrix=matrix(c(var1,-covv,-covv,var2),ncol=2,nrow=2)
 punten1=confellips(mu=c(-mu1,mu2),sigma=sematrix,alfa=0.05,npoints=1000)
 lines(invlogit(punten1[,1]),invlogit(punten1[,2]),col=3,lty=2)
@@ -459,13 +457,13 @@ mu2= stats[which(row.names(stats)=="meanalpha[1]"),1] + stats[which(row.names(st
 var1= stats[which(row.names(stats)=="meanalpha[3]"),2]^2 + stats[which(row.names(stats)=="meanalpha[4]"),2]^2
 var2= stats[which(row.names(stats)=="meanalpha[1]"),2]^2 + stats[which(row.names(stats)=="meanalpha[2]"),2]^2
 covv=cov(x[[1]][,which(colnames(x[[1]])=="meanalpha[1]")]+x[[1]][,which(colnames(x[[1]])=="meanalpha[2]")],
-         x[[1]][,which(colnames(x[[1]])=="meanalpha[3]")]+x[[1]][,which(colnames(x[[1]])=="meanalpha[4]")])
+         x[[1]][,which(colnames(x[[1]])=="meanalpha[3]")]+x[[1]][,which(colnames(x[[1]])=="meanalpha[4]")])             # only samples from chain 1 to estimate this covariance
 sematrix=matrix(c(var1,-covv,-covv,var2),ncol=2,nrow=2)
 punten1=confellips(mu=c(-mu1,mu2),sigma=sematrix,alfa=0.05,npoints=1000)
 lines(invlogit(punten1[,1]),invlogit(punten1[,2]),col=2,lty=2)
 var1= stats[which(row.names(stats)=="Sigma[3,3]"),1] + stats[which(row.names(stats)=="Sigma[4,4]"),1] + 2*stats[which(row.names(stats)=="Sigma[3,4]"),1]
 var2= stats[which(row.names(stats)=="Sigma[1,1]"),1] + stats[which(row.names(stats)=="Sigma[2,2]"),1] + 2*stats[which(row.names(stats)=="Sigma[1,2]"),1]
-covv= stats[which(row.names(stats)=="Sigma[1,3]"),1] + stats[which(row.names(stats)=="Sigma[1,4]"),1] + 
+covv= stats[which(row.names(stats)=="Sigma[1,3]"),1] + stats[which(row.names(stats)=="Sigma[1,4]"),1] +
       stats[which(row.names(stats)=="Sigma[2,3]"),1] + stats[which(row.names(stats)=="Sigma[2,4]"),1]
 sematrix=matrix(c(var1,-covv,-covv,var2),ncol=2,nrow=2)
 punten1=confellips(mu=c(-mu1,mu2),sigma=sematrix,alfa=0.05,npoints=1000)

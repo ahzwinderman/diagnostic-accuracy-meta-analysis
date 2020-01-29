@@ -120,21 +120,19 @@ x = coda.samples(m, c("meanalpha","sensdifferenceBvsA","specdifferenceBvsA",
 plot(x,ask=TRUE)                                                                                       # check for convergence 
            
 
-####### since the convergence was OK for the datasets tried out so far, the results below are based only on sample drawn from the first chain
+
 
                                                                                             #     trace-plots should display stable chaos
 # summary of the structural and derived parameters
-summary(x)[[1]]                                                                                        # calculate statistics
+summary(x)                                                                                             # calculate statistics
 
 dev.new()
 par(mfrow=c(2,2))
+####### since the convergence was OK for the datasets tried out so far, the results below are based only on sample drawn from the first chain
 hist(x[[1]][,which(colnames(x[[1]])=="sensoddsratioAvsB")],xlab="odds ratio A vs B",main="sensitivity")   # a histogram of the samples for one parameter
 quantile(x[[1]][,which(colnames(x[[1]])=="sensoddsratioAvsB")],probs=c(0.025,0.25,0.50,0.75,0.975))       # a 95% credibility interval for this parameter
 hist(x[[1]][,which(colnames(x[[1]])=="specoddsratioAvsB")],xlab="odds ratio A vs B",main="specificity")   # a histogram of the samples for one parameter
 quantile(x[[1]][,which(colnames(x[[1]])=="specoddsratioAvsB")],probs=c(0.025,0.25,0.50,0.75,0.975))       # a 95% credibility interval for this parameter
-#par(mfrow=c(1,1))
-
-#par(mfrow=c(1,2))
 hist(x[[1]][,which(colnames(x[[1]])=="sensdifferenceBvsA")],xlab="difference B vs A",main="sensitivity")  # a histogram of the samples for another parameter
 quantile(x[[1]][,which(colnames(x[[1]])=="sensdifferenceBvsA")],probs=c(0.025,0.25,0.50,0.75,0.975))      # a 95% credibility interval for this other parameter
 hist(x[[1]][,which(colnames(x[[1]])=="specdifferenceBvsA")],xlab="difference B vs A",main="specificity")  # a histogram of the samples for another parameter
@@ -143,7 +141,8 @@ par(mfrow=c(1,1))
 
 
 x1 = coda.samples(m,c("meansensitivityA","meansensitivityB","meanspecificityA","meanspecificityB"), n.iter=50000)
-help1=t(apply(x1[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))
+#help1=t(apply(x1[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))
+help1=summary(x1)$quantiles[,c(1,3,5)]
 
 
 dev.new()
@@ -203,7 +202,8 @@ mtext("test B",side=3,outer=TRUE,line=-23)
 
 dev.new()
 #pdf("fig2.pdf")
-help0=t(apply(x[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))
+#help0=t(apply(x[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))
+help0=summary(x)$quantiles[,c(1,3,5)]
 layout(matrix(c(1,2,3,4),nrow=2,ncol=2))
 plot(1,1,xlab="difference of sensitivities B vs A",ylab="study number",xlim=c(-1,1),main="",ylim=c(-(N+2),-1),type="n",yaxt="n")
 axis(2,at=c(-(N+2),-N:-1),labels=c("overall",1:N))
@@ -297,7 +297,7 @@ for (i in 1:N) {
 }
 legend(x=0.8,y=0.1,legend=c("test A","test B"),pch=16,col=c(2,3),bty="n")
 stat=summary(x)$statistics
-help0=t(apply(x[[1]],2,function(y){quantile(y,probs=c(0.025,0.5,0.975))}))
+help0=summary(x)$quantiles[,c(1,3,5)]
 points(1-invlogit(help0[which(row.names(help0)=="meanalpha[3]"),2]),invlogit(help0[which(row.names(help0)=="meanalpha[1]"),2]),col=3,pch=16,cex=1.5)
 mu1=help0[which(row.names(help0)=="meanalpha[3]"),2]
 mu2=help0[which(row.names(help0)=="meanalpha[1]"),2]
