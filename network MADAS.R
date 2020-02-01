@@ -194,13 +194,17 @@ for (j in 1:K) {
    mu1= help0[which(row.names(help0)==paste("meanalpha[",(K+j),"]",sep="")),1]
    var2= help0[which(row.names(help0)==paste("meanalpha[",j,"]",sep="")),2]^2
    var1= help0[which(row.names(help0)==paste("meanalpha[",(K+j),"]",sep="")),2]^2
-   covv=cov(x[[1]][,which(colnames(x[[1]])==paste("meanalpha[",j,"]",sep=""))],x[[1]][,which(colnames(x[[1]])==paste("meanalpha[",(K+j),"]",sep=""))])             # covariance based only on samples in chain 1
+   hhelp1=c(x[[1]][,which(colnames(x[[1]])==paste("meanalpha[",j,"]",sep=""))],x[[1]][,which(colnames(x[[2]])==paste("meanalpha[",j,"]",sep=""))])
+   hhelp2=c(x[[1]][,which(colnames(x[[1]])==paste("meanalpha[",(K+j),"]",sep=""))],x[[2]][,which(colnames(x[[1]])==paste("meanalpha[",(K+j),"]",sep=""))])
+   covv=cov(hhelp1,hhelp2)
    sematrix=matrix(c(var1,-covv,-covv,var2),ncol=2,nrow=2)
    punten1=confellips(mu=c(-mu1,mu2),sigma=sematrix,alfa=0.05,npoints=1000)
    lines(invlogit(punten1[,1]),invlogit(punten1[,2]),col=j+1,lty=2)
    var1= help0[which(row.names(help0)==paste("Sigma[",(K+j),",",(K+j),"]",sep="")),1]
    var2= help0[which(row.names(help0)==paste("Sigma[",j,",",j,"]",sep="")),1]
-   covv= cov(x[[1]][,which(colnames(x[[1]])==paste("Sigma[",j,",",j,"]",sep=""))],x[[1]][,which(colnames(x[[1]])==paste("Sigma[",(K+j),",",(K+j),"]",sep=""))])    # covariance based only on samples in chain 1
+   hhelp3=c(x[[1]][,which(colnames(x[[1]])==paste("Sigma[",j,",",j,"]",sep=""))],x[[2]][,which(colnames(x[[1]])==paste("Sigma[",j,",",j,"]",sep=""))])
+   hhelp4=c(x[[1]][,which(colnames(x[[1]])==paste("Sigma[",(K+j),",",(K+j),"]",sep=""))],x[[2]][,which(colnames(x[[1]])==paste("Sigma[",(K+j),",",(K+j),"]",sep=""))])
+   covv=cov(hhelp3,hhelp4) 
    sematrix=matrix(c(var1,-covv,-covv,var2),ncol=2,nrow=2)
    punten1=confellips(mu=c(-mu1,mu2),sigma=sematrix,alfa=0.05,npoints=1000)
    lines(invlogit(punten1[,1]),invlogit(punten1[,2]),col=j+1,lty=1)
