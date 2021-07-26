@@ -18,3 +18,5 @@ R syntax files for performing meta-analysis of diagnostic accuracy studies
 4. MA diagnostic accuracies multiple thresholds.R
     Syntax to perform a random-effects meta-analysis of a series of studies of a single quantitative diagnostic test that report results of multiple thresholds. Input data is a data.framer with true and false positives and negatives. Main output is an ROC-curve with AUC-value. The syntax uses a multinomial-normal model, uses a Bayesian framework and offers 95% credibility intervals. Input data, model, and output are comparable with the diagmeta-package, but we do not assume that results of different thresholds in the same study are independent.
 
+5. BADA2.R
+    Syntax to perform random-effects meta-analysis of a series of studies of diagnostic test(s) with adjustment for study-level covariables. The syntax, input-data and outout are similar to "bivariate MA diagnostic accuracy.R". Univariate and the bivariate and the Rutter-Gatsonis SROC models are used with either the normal-normal and binomial-normal mixtures withor without a Bayesian approach.
